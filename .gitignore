@@ -1,0 +1,5 @@
+*.suo
+DoThis/packages/
+DoThis/bin/
+DoThis/obj/
+*.user
