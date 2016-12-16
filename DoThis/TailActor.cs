@@ -6,11 +6,17 @@ namespace WinTail
 {
     public class TailActor : UntypedActor
     {
-        private readonly IActorRef _reportActor;
-        private readonly string _filePath;
-        private readonly FileObserver _observer;
-        private readonly FileStream _fileStream;
-        private readonly StreamReader _fileStreamReader;
+        private IActorRef _reportActor;
+        private string _filePath;
+        private FileObserver _observer;
+        private FileStream _fileStream;
+        private StreamReader _fileStreamReader;
+
+        public TailActor(IActorRef ReportActor, string FilePath)
+        {
+            _reportActor = ReportActor;
+            _filePath = FilePath;
+        }
 
         public class FileError
         {
@@ -46,19 +52,25 @@ namespace WinTail
             }
         }
 
-        public TailActor(IActorRef reportActor, string filePath)
+        protected override void PreStart()
         {
-            _reportActor = reportActor;
-            _filePath = filePath;
-
             _observer = new FileObserver(Self, Path.GetFullPath(_filePath));
             _observer.Start();
 
-            _fileStream = new FileStream(Path.GetFullPath(_filePath), FileMode.Open, FileAccess.Read, share: FileShare.ReadWrite);
-
+            _fileStream = new FileStream(Path.GetFullPath(_filePath), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             _fileStreamReader = new StreamReader(_fileStream, Encoding.UTF8);
+
             var text = _fileStreamReader.ReadToEnd();
             Self.Tell(new InitialRead(_filePath, text));
+        }
+
+        protected override void PostStop()
+        {
+            _observer.Dispose();
+            _observer = null;
+            _fileStreamReader.Close();
+            _fileStreamReader.Dispose();
+            base.PostStop();
         }
 
         protected override void OnReceive(object message)
