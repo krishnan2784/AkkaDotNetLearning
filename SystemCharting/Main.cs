@@ -4,16 +4,15 @@ using ChartApp.Actors;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 
 namespace ChartApp
 {
     public partial class Main : Form
     {
         private IActorRef _chartActor;
+        private AtomicCounter _seriesCounter = new AtomicCounter(1);
         private IActorRef _coordinatorActor;
         private Dictionary<CounterType, IActorRef> _toggleActors = new Dictionary<CounterType, IActorRef>();
-        private readonly AtomicCounter _seriesCounter = new AtomicCounter(1);
 
         public Main()
         {
@@ -24,32 +23,27 @@ namespace ChartApp
 
         private void Main_Load(object sender, EventArgs e)
         {
-            _chartActor = Program.ChartActors.ActorOf(Props.Create(() =>
-        new ChartingActor(sysChart)), "charting");
+            _chartActor = Program.ChartActors.ActorOf(Props.Create(() => new ChartingActor(sysChart)), "charting");
             _chartActor.Tell(new ChartingActor.InitializeChart(null)); //no initial series
 
-            _coordinatorActor = Program.ChartActors.ActorOf(Props.Create(() =>
-                    new PerformanceCounterCoordinatorActor(_chartActor)), "counters");
+            _coordinatorActor = Program.ChartActors.ActorOf(Props.Create(() => new PerformanceCounterCoordinatorActor(_chartActor)), "counters");
 
-            // CPU button toggle actor
+            //CPU button toggle actor
             _toggleActors[CounterType.Cpu] = Program.ChartActors.ActorOf(
-                Props.Create(() => new ButtonToggleActor(_coordinatorActor, btnCpu,
-                CounterType.Cpu, false))
-                .WithDispatcher("akka.actor.synchronized-dispatcher"));
+                Props.Create(() => new ButtonToggleActor(_coordinatorActor, btnCpu, CounterType.Cpu, false))
+                    .WithDispatcher("akka.actor.synchronized-dispatcher"));
 
-            // MEMORY button toggle actor
+            //MEMORY button toggle actor
             _toggleActors[CounterType.Memory] = Program.ChartActors.ActorOf(
-               Props.Create(() => new ButtonToggleActor(_coordinatorActor, btnMemory,
-                CounterType.Memory, false))
-                .WithDispatcher("akka.actor.synchronized-dispatcher"));
+               Props.Create(() => new ButtonToggleActor(_coordinatorActor, btnMemory, CounterType.Memory, false))
+                   .WithDispatcher("akka.actor.synchronized-dispatcher"));
 
-            // DISK button toggle actor
+            //DISK button toggle actor
             _toggleActors[CounterType.Disk] = Program.ChartActors.ActorOf(
-               Props.Create(() => new ButtonToggleActor(_coordinatorActor, btnDisk,
-               CounterType.Disk, false))
-               .WithDispatcher("akka.actor.synchronized-dispatcher"));
+               Props.Create(() => new ButtonToggleActor(_coordinatorActor, btnDisk, CounterType.Disk, false))
+                   .WithDispatcher("akka.actor.synchronized-dispatcher"));
 
-            // Set the CPU toggle to ON so we start getting some data
+            //Set the CPU toggle to ON so we start getting some data
             _toggleActors[CounterType.Cpu].Tell(new ButtonToggleActor.Toggle());
         }
 
@@ -64,16 +58,23 @@ namespace ChartApp
 
         #endregion Initialization
 
+        #region Button handlers
+
         private void btnCpu_Click(object sender, EventArgs e)
         {
+            _toggleActors[CounterType.Cpu].Tell(new ButtonToggleActor.Toggle());
         }
 
         private void btnMemory_Click(object sender, EventArgs e)
         {
+            _toggleActors[CounterType.Memory].Tell(new ButtonToggleActor.Toggle());
         }
 
         private void btnDisk_Click(object sender, EventArgs e)
         {
+            _toggleActors[CounterType.Disk].Tell(new ButtonToggleActor.Toggle());
         }
+
+        #endregion Button handlers
     }
 }

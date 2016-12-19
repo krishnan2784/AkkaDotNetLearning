@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.sysChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.btnCpu = new System.Windows.Forms.Button();
             this.btnMemory = new System.Windows.Forms.Button();
@@ -40,46 +40,51 @@
             // 
             // sysChart
             // 
-            chartArea4.Name = "ChartArea1";
-            this.sysChart.ChartAreas.Add(chartArea4);
+            chartArea2.Name = "ChartArea1";
+            this.sysChart.ChartAreas.Add(chartArea2);
             this.sysChart.Dock = System.Windows.Forms.DockStyle.Fill;
-            legend4.Name = "Legend1";
-            this.sysChart.Legends.Add(legend4);
+            legend2.Name = "Legend1";
+            this.sysChart.Legends.Add(legend2);
             this.sysChart.Location = new System.Drawing.Point(0, 0);
             this.sysChart.Name = "sysChart";
-            series4.ChartArea = "ChartArea1";
-            series4.Legend = "Legend1";
-            series4.Name = "Series1";
-            this.sysChart.Series.Add(series4);
+            series2.ChartArea = "ChartArea1";
+            series2.Legend = "Legend1";
+            series2.Name = "Series1";
+            this.sysChart.Series.Add(series2);
             this.sysChart.Size = new System.Drawing.Size(684, 446);
             this.sysChart.TabIndex = 0;
             this.sysChart.Text = "sysChart";
             // 
             // btnCpu
             // 
-            this.btnCpu.Location = new System.Drawing.Point(557, 302);
+            this.btnCpu.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnCpu.Location = new System.Drawing.Point(562, 274);
             this.btnCpu.Name = "btnCpu";
-            this.btnCpu.Size = new System.Drawing.Size(115, 31);
+            this.btnCpu.Size = new System.Drawing.Size(110, 41);
             this.btnCpu.TabIndex = 1;
+            this.btnCpu.Text = "CPU (ON)";
             this.btnCpu.UseVisualStyleBackColor = true;
             this.btnCpu.Click += new System.EventHandler(this.btnCpu_Click);
             // 
             // btnMemory
             // 
-            this.btnMemory.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnMemory.Location = new System.Drawing.Point(557, 339);
+            this.btnMemory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnMemory.Location = new System.Drawing.Point(562, 321);
             this.btnMemory.Name = "btnMemory";
-            this.btnMemory.Size = new System.Drawing.Size(115, 31);
+            this.btnMemory.Size = new System.Drawing.Size(110, 41);
             this.btnMemory.TabIndex = 2;
+            this.btnMemory.Text = "MEMORY (OFF)";
             this.btnMemory.UseVisualStyleBackColor = true;
             this.btnMemory.Click += new System.EventHandler(this.btnMemory_Click);
             // 
             // btnDisk
             // 
-            this.btnDisk.Location = new System.Drawing.Point(557, 376);
+            this.btnDisk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnDisk.Location = new System.Drawing.Point(562, 368);
             this.btnDisk.Name = "btnDisk";
-            this.btnDisk.Size = new System.Drawing.Size(115, 31);
+            this.btnDisk.Size = new System.Drawing.Size(110, 41);
             this.btnDisk.TabIndex = 3;
+            this.btnDisk.Text = "DISK (OFF)";
             this.btnDisk.UseVisualStyleBackColor = true;
             this.btnDisk.Click += new System.EventHandler(this.btnDisk_Click);
             // 

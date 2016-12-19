@@ -1,42 +1,55 @@
 ﻿using Akka.Actor;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ChartApp.Actors
 {
+    /// <summary>
+    /// Actor responsible for managing button toggles
+    /// </summary>
     public class ButtonToggleActor : UntypedActor
     {
-        private readonly IActorRef _coordinatorActor;
-        private readonly Button _button;
-        private readonly CounterType _countertype;
+        #region Message types
+
+        /// <summary>
+        /// Toggles this button on or off and sends an appropriate messages
+        /// to the <see cref="PerformanceCounterCoordinatorActor"/>
+        /// </summary>
+        public class Toggle { }
+
+        #endregion Message types
+
+        private readonly CounterType _myCounterType;
         private bool _isToggledOn;
+        private readonly Button _myButton;
+        private readonly IActorRef _coordinatorActor;
 
-        public class Toggle
-        {
-        }
-
-        public ButtonToggleActor(IActorRef coordinatorActor, Button button, CounterType countertype, bool isToggledOn = false)
+        public ButtonToggleActor(IActorRef coordinatorActor, Button myButton, CounterType myCounterType, bool isToggledOn = false)
         {
             _coordinatorActor = coordinatorActor;
-            _button = button;
-            _countertype = countertype;
+            _myButton = myButton;
             _isToggledOn = isToggledOn;
+            _myCounterType = myCounterType;
         }
 
         protected override void OnReceive(object message)
         {
             if (message is Toggle && _isToggledOn)
             {
-                _coordinatorActor.Tell(new PerformanceCounterCoordinatorActor.Unwatch(_countertype));
+                //toggle is currently on
+
+                //stop watching this counter
+                _coordinatorActor.Tell(new PerformanceCounterCoordinatorActor.Unwatch(_myCounterType));
+
                 FlipToggle();
             }
             else if (message is Toggle && !_isToggledOn)
             {
-                _coordinatorActor.Tell(new PerformanceCounterCoordinatorActor.Watch(_countertype));
+                //toggle is currently off
+
+                //start watching this counter
+                _coordinatorActor.Tell(new PerformanceCounterCoordinatorActor.Watch(_myCounterType));
+
+                FlipToggle();
             }
             else
             {
@@ -46,8 +59,11 @@ namespace ChartApp.Actors
 
         private void FlipToggle()
         {
+            //flip the toggle
             _isToggledOn = !_isToggledOn;
-            _button.Text = string.Format("{0} ({1}", _countertype.ToString().ToUpperInvariant(),
+
+            //change the text of the button
+            _myButton.Text = string.Format("{0} ({1})", _myCounterType.ToString().ToUpperInvariant(),
                 _isToggledOn ? "ON" : "OFF");
         }
     }
