@@ -3,3 +3,6 @@ DoThis/packages/
 DoThis/bin/
 DoThis/obj/
 *.user
+SystemCharting/obj/
+SystemCharting/packages/
+SystemCharting/bin/
