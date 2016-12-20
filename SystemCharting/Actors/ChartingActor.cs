@@ -2,13 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 
 namespace ChartApp.Actors
 {
-    public class ChartingActor : ReceiveActor
+    public class ChartingActor : ReceiveActor, IWithUnboundedStash
     {
         #region Public Fields
 
@@ -147,11 +146,15 @@ namespace ChartApp.Actors
 
         private void Paused()
         {
+            Receive<AddSeries>(addSeries => Stash.Stash());
+            Receive<RemoveSeries>(removeSeries => Stash.Stash());
+
             Receive<Metric>(metric => HandleMetricsPaused(metric));
             Receive<TogglePause>(pause =>
             {
                 SetPauseButtonText(false);
                 UnbecomeStacked();
+                Stash.UnstashAll();
             });
         }
 
@@ -255,5 +258,7 @@ namespace ChartApp.Actors
         }
 
         #endregion Public Classes
+
+        public IStash Stash { get; set; }
     }
 }
