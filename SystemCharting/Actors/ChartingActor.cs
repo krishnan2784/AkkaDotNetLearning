@@ -3,81 +3,83 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 
 namespace ChartApp.Actors
 {
     public class ChartingActor : ReceiveActor
     {
+        #region Public Fields
+
         /// <summary>
         /// Maximum number of points we will allow in a series
         /// </summary>
         public const int MaxPoints = 250;
+
+        #endregion Public Fields
+
+        #region Private Fields
+
+        private readonly Chart _chart;
+        private Dictionary<string, Series> _seriesIndex;
 
         /// <summary>
         /// Incrementing counter we use to plot along the X-axis
         /// </summary>
         private int xPosCounter = 0;
 
-        #region Messages
+        #endregion Private Fields
 
-        public class InitializeChart
-        {
-            public InitializeChart(Dictionary<string, Series> initialSeries)
-            {
-                InitialSeries = initialSeries;
-            }
+        #region Public Constructors
 
-            public Dictionary<string, Series> InitialSeries { get; private set; }
-        }
-
-        /// <summary>
-        /// Add a new <see cref="Series"/> to the chart
-        /// </summary>
-        public class AddSeries
-        {
-            public AddSeries(Series series)
-            {
-                Series = series;
-            }
-
-            public Series Series { get; private set; }
-        }
-
-        /// <summary>
-        /// Remove an existing <see cref="Series"/> from the chart
-        /// </summary>
-        public class RemoveSeries
-        {
-            public RemoveSeries(string seriesName)
-            {
-                SeriesName = seriesName;
-            }
-
-            public string SeriesName { get; private set; }
-        }
-
-        #endregion Messages
-
-        private readonly Chart _chart;
-        private Dictionary<string, Series> _seriesIndex;
-
-        public ChartingActor(Chart chart) : this(chart, new Dictionary<string, Series>())
+        public ChartingActor(Chart chart, Button pauseButton) : this(chart, pauseButton, new Dictionary<string, Series>())
         {
         }
 
-        public ChartingActor(Chart chart, Dictionary<string, Series> seriesIndex)
+        public ChartingActor(Chart chart, Button pauseButton, Dictionary<string, Series> seriesIndex)
         {
+            _pauseButton = pauseButton;
             _chart = chart;
             _seriesIndex = seriesIndex;
 
+            Charting();
+        }
+
+        #endregion Public Constructors
+
+        #region Public Properties
+
+        public Button PauseButton { get; set; }
+        private readonly Button _pauseButton;
+
+        #endregion Public Properties
+
+        #region Private Methods
+
+        private void Charting()
+        {
             Receive<InitializeChart>(ic => HandleInitialize(ic));
             Receive<AddSeries>(addSeries => HandleAddSeries(addSeries));
             Receive<RemoveSeries>(removeSeries => HandleRemoveSeries(removeSeries));
             Receive<Metric>(metric => HandleMetrics(metric));
+
+            Receive<TogglePause>(pause =>
+            {
+                SetPauseButtonText(true);
+                BecomeStacked(Paused);
+            });
         }
 
-        #region Individual Message Type Handlers
+        private void HandleAddSeries(AddSeries series)
+        {
+            if (!string.IsNullOrEmpty(series.Series.Name) && !_seriesIndex.ContainsKey(series.Series.Name))
+            {
+                _seriesIndex.Add(series.Series.Name, series.Series);
+                _chart.Series.Add(series.Series);
+                SetChartBoundaries();
+            }
+        }
 
         private void HandleInitialize(InitializeChart ic)
         {
@@ -111,14 +113,25 @@ namespace ChartApp.Actors
             SetChartBoundaries();
         }
 
-        private void HandleAddSeries(AddSeries series)
+        private void HandleMetrics(Metric metric)
         {
-            if (!string.IsNullOrEmpty(series.Series.Name) && !_seriesIndex.ContainsKey(series.Series.Name))
+            if (!string.IsNullOrEmpty(metric.Series) && _seriesIndex.ContainsKey(metric.Series))
             {
-                _seriesIndex.Add(series.Series.Name, series.Series);
-                _chart.Series.Add(series.Series);
+                var series = _seriesIndex[metric.Series];
+                if (series.Points == null) return; // means we're shutting down
+                series.Points.AddXY(xPosCounter++, metric.CounterValue);
+                while (series.Points.Count > MaxPoints) series.Points.RemoveAt(0);
                 SetChartBoundaries();
             }
+        }
+
+        private void HandleMetricsPaused(Metric metric)
+        {
+            if (string.IsNullOrEmpty(metric.Series) || !_seriesIndex.ContainsKey(metric.Series)) return;
+            var series = _seriesIndex[metric.Series];
+            series.Points.AddXY(xPosCounter++, 0.0d);
+            while (series.Points.Count > MaxPoints) series.Points.RemoveAt(0);
+            SetChartBoundaries();
         }
 
         private void HandleRemoveSeries(RemoveSeries series)
@@ -132,19 +145,15 @@ namespace ChartApp.Actors
             }
         }
 
-        private void HandleMetrics(Metric metric)
+        private void Paused()
         {
-            if (!string.IsNullOrEmpty(metric.Series) && _seriesIndex.ContainsKey(metric.Series))
+            Receive<Metric>(metric => HandleMetricsPaused(metric));
+            Receive<TogglePause>(pause =>
             {
-                var series = _seriesIndex[metric.Series];
-                if (series.Points == null) return; // means we're shutting down
-                series.Points.AddXY(xPosCounter++, metric.CounterValue);
-                while (series.Points.Count > MaxPoints) series.Points.RemoveAt(0);
-                SetChartBoundaries();
-            }
+                SetPauseButtonText(false);
+                UnbecomeStacked();
+            });
         }
-
-        #endregion Individual Message Type Handlers
 
         private void SetChartBoundaries()
         {
@@ -171,5 +180,80 @@ namespace ChartApp.Actors
                 area.AxisX.Maximum = maxAxisX;
             }
         }
+
+        private void SetPauseButtonText(bool paused)
+        {
+            _pauseButton.Text = string.Format("{0}", !paused ? "Pause ||" : "Resume ->");
+        }
+
+        #endregion Private Methods
+
+        #region Public Classes
+
+        /// <summary>
+        /// Add a new <see cref="Series"/> to the chart
+        /// </summary>
+        public class AddSeries
+        {
+            #region Public Constructors
+
+            public AddSeries(Series series)
+            {
+                Series = series;
+            }
+
+            #endregion Public Constructors
+
+            #region Public Properties
+
+            public Series Series { get; private set; }
+
+            #endregion Public Properties
+        }
+
+        public class InitializeChart
+        {
+            #region Public Constructors
+
+            public InitializeChart(Dictionary<string, Series> initialSeries)
+            {
+                InitialSeries = initialSeries;
+            }
+
+            #endregion Public Constructors
+
+            #region Public Properties
+
+            public Dictionary<string, Series> InitialSeries { get; private set; }
+
+            #endregion Public Properties
+        }
+
+        /// <summary>
+        /// Remove an existing <see cref="Series"/> from the chart
+        /// </summary>
+        public class RemoveSeries
+        {
+            #region Public Constructors
+
+            public RemoveSeries(string seriesName)
+            {
+                SeriesName = seriesName;
+            }
+
+            #endregion Public Constructors
+
+            #region Public Properties
+
+            public string SeriesName { get; private set; }
+
+            #endregion Public Properties
+        }
+
+        public class TogglePause
+        {
+        }
+
+        #endregion Public Classes
     }
 }

@@ -54,7 +54,7 @@ namespace ChartApp.Actors
         };
 
         /// <summary>
-        /// Methods for creating new <see cref="Series"/> with distinct colors and names corresponding to each <see cref="PerformanceCounter"/>
+        /// Methods for creating new <see cref="Series"/> with distinct colours and names corresponding to each <see cref="PerformanceCounter"/>
         /// </summary>
         private static readonly Dictionary<CounterType, Func<Series>> CounterSeries = new Dictionary<CounterType, Func<Series>>()
         {
