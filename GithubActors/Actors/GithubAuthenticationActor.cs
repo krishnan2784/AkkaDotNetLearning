@@ -1,6 +1,6 @@
-﻿using System.Drawing;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Octokit;
+using System.Drawing;
 using Label = System.Windows.Forms.Label;
 
 namespace GithubActors.Actors
@@ -25,7 +25,7 @@ namespace GithubActors.Actors
 
         public class AuthenticationSuccess { }
 
-        #endregion
+        #endregion Messages
 
         private readonly Label _statusLabel;
         private readonly GithubAuth _form;
@@ -61,21 +61,21 @@ namespace GithubActors.Actors
         {
             _statusLabel.Visible = true;
             _statusLabel.ForeColor = Color.Yellow;
-            _statusLabel.Text = "Authenticating...";
+            _statusLabel.Text = @"Authenticating...";
             Become(Authenticating);
         }
 
-        private void BecomeUnauthenticated(string reason)
+        private void BecomeUnauthenticated()
         {
             _statusLabel.ForeColor = Color.Red;
-            _statusLabel.Text = "Authentication failed. Please try again.";
+            _statusLabel.Text = @"Authentication failed. Please try again.";
             Become(Unauthenticated);
         }
 
         private void Authenticating()
         {
-            Receive<AuthenticationFailed>(failed => BecomeUnauthenticated("Authentication failed."));
-            Receive<AuthenticationCancelled>(cancelled => BecomeUnauthenticated("Authentication timed out."));
+            Receive<AuthenticationFailed>(failed => BecomeUnauthenticated());
+            Receive<AuthenticationCancelled>(cancelled => BecomeUnauthenticated());
             Receive<AuthenticationSuccess>(success =>
             {
                 var launcherForm = new LauncherForm();

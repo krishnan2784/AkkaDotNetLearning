@@ -1,7 +1,7 @@
-﻿using System;
-using System.Linq;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Octokit;
+using System;
+using System.Linq;
 
 namespace GithubActors.Actors
 {
@@ -38,7 +38,7 @@ namespace GithubActors.Actors
         /// <summary>
         /// System is unable to process additional repos at this time
         /// </summary>
-        public class SystemBusy {  }
+        public class SystemBusy { }
 
         /// <summary>
         /// This is a valid repository
@@ -47,16 +47,20 @@ namespace GithubActors.Actors
         {
             /*
              * Using singleton pattern here since it's a stateless message.
-             * 
+             *
              * Considered to be a good practice to eliminate unnecessary garbage collection,
              * and it's used internally inside Akka.NET for similar scenarios.
              */
-            private RepoIsValid() { }
+
+            private RepoIsValid()
+            {
+            }
+
             private static readonly RepoIsValid _instance = new RepoIsValid();
             public static RepoIsValid Instance { get { return _instance; } }
         }
 
-        #endregion
+        #endregion Messages
 
         private readonly IGitHubClient _gitHubClient;
 
@@ -105,12 +109,11 @@ namespace GithubActors.Actors
                 Context.ActorSelection(ActorPaths.GithubCommanderActor.Path).Tell(new GithubCommanderActor.CanAcceptJob(new RepoKey(repository.Owner.Login, repository.Name)));
             });
 
-
             /* REPO is valid, but can we process it at this time? */
 
             //yes
             Receive<GithubCommanderActor.UnableToAcceptJob>(job => Context.ActorSelection(ActorPaths.MainFormActor.Path).Tell(job));
-            
+
             //no
             Receive<GithubCommanderActor.AbleToAcceptJob>(job => Context.ActorSelection(ActorPaths.MainFormActor.Path).Tell(job));
         }

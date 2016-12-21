@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Akka.Routing;
 using Octokit;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace GithubActors.Actors
 {
@@ -38,7 +37,10 @@ namespace GithubActors.Actors
 
         public class PublishUpdate
         {
-            private PublishUpdate() { }
+            private PublishUpdate()
+            {
+            }
+
             private static readonly PublishUpdate _instance = new PublishUpdate();
 
             public static PublishUpdate Instance
@@ -60,7 +62,7 @@ namespace GithubActors.Actors
             public RepoKey Repo { get; private set; }
         }
 
-        #endregion
+        #endregion Message classes
 
         private IActorRef _githubWorker;
 
@@ -70,7 +72,7 @@ namespace GithubActors.Actors
         private ICancelable _publishTimer;
         private GithubProgressStats _githubProgressStats;
 
-        private bool _receivedInitialUsers = false;
+        private bool _receivedInitialUsers;
 
         public GithubCoordinatorActor()
         {
@@ -137,7 +139,7 @@ namespace GithubActors.Actors
                 if (_receivedInitialUsers && _githubProgressStats.IsFinished)
                 {
                     _githubProgressStats = _githubProgressStats.Finish();
-                    
+
                     //all repos minus forks of the current one
                     var sortedSimilarRepos = _similarRepos.Values
                         .Where(x => x.Repo.Name != _currentRepo.Repo).OrderByDescending(x => x.SharedStarrers).ToList();
@@ -171,7 +173,7 @@ namespace GithubActors.Actors
             {
                 //this is our first subscriber, which means we need to turn publishing on
                 if (_subscribers.Count == 0)
-                { 
+                {
                     Context.System.Scheduler.ScheduleTellRepeatedly(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100),
                         Self, PublishUpdate.Instance, Self, _publishTimer);
                 }
