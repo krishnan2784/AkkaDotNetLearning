@@ -3,3 +3,12 @@ DoThis/packages/
 DoThis/bin/
 DoThis/obj/
 *.user
+SystemCharting/obj/
+SystemCharting/packages/
+SystemCharting/bin/
+WinTail/packages/
+WinTail/bin/
+WinTail/obj/
+GithubActors/obj/
+GithubActors/bin/
+GithubActors/packages/
